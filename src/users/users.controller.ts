@@ -7,18 +7,36 @@ import { Roles } from '../auth/roles/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @Post()
+  @ApiBody({
+    description: 'The data to create a new user',
+    type: CreateUserDto,
+    examples: {
+      example1: {
+        summary: 'Example user creation',
+        value: {
+          email: 'new@example.com',
+          password: 'strongPassword123',
+        },
+      },
+    },
+  })
   @Roles('ADMIN')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Patch(':id/block')
+  @ApiOperation({ summary: 'Block/unblock a user by its ID' })
+  @ApiParam({ name: 'id', required: true, description: 'The ID of the user you want to block/unblock' })
   @Roles('ADMIN')
   async blockUser(
     @Param('id', ParseIntPipe) id: number,
