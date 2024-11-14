@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  password     String
+  role         String         @default("USER")
+  isBlocked    Boolean        @default(false)
+  accounts     Account[]
+  deposits     Deposit[]
+}
+
+model Admin {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+}
+
+model Account {
+  id           Int            @id @default(autoincrement())
+  currency     String
+  balance      Float          @default(0.0)
+  userId       Int
+  user         User           @relation(fields: [userId], references: [id])
+  transactions Transaction[]  // One-to-many relationship with Transaction model
+  deposits     Deposit[]
+}
+
+model Deposit {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  interest  Float
+  createdAt DateTime @default(now())
+  accountId Int
+  userId    Int      // Make sure this line exists
+  account   Account  @relation(fields: [accountId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id             Int      @id @default(autoincrement())
+  type           String   // e.g., "deposit", "withdrawal", "transfer"
+  amount         Float
+  createdAt      DateTime @default(now())
+  accountId      Int
+  account        Account  @relation(fields: [accountId], references: [id])
+  targetAccountId Int?    // For transfers between accounts (optional field)
+}
+
