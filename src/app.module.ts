@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { RolesGuard } from './auth/roles/roles.guard';
 import { OwnershipGuard } from './accounts/ownership.guard';
+import { LogsModule } from './logs/logs.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OwnershipGuard } from './accounts/ownership.guard';
     DepositsModule,
     AdminModule,
     PrismaModule,
+    LogsModule,
   ],
   controllers: [AppController],
   providers: [
