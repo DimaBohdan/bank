@@ -15,7 +15,9 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
   @Post()
+  @ApiOperation({ summary: 'Create new user' })
   @ApiBody({
     description: 'The data to create a new user',
     type: CreateUserDto,
@@ -47,12 +49,15 @@ export class UsersController {
 
   @Get(':id/deposits')
   @Roles('ADMIN')
+  @ApiOperation({ summary: 'Find all deposits of user by id' })
+  @ApiParam({ name: 'id', required: true, description: 'The ID of the user you want to get deposits' })
   async getUserDeposits(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.usersService.findUserDeposits(Number(id));
   }
 
   @Get()
   @Roles('ADMIN')
+  @ApiOperation({ summary: 'Get full list of users' })
   async findAllUsers(@Req() req: RequestWithUser) {
     return this.usersService.findAll();
   }

@@ -23,20 +23,36 @@ import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { OwnershipGuard } from './ownership.guard';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Accounts')
 @Controller('accounts')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get all your accounts' })
   async getUserAccounts(@Req() req: RequestWithUser) {
-    const userId = req.user.id; // Assuming `req.user` contains the decoded JWT payload, including `id`
+    const userId = req.user.id;
     console.log(req);
     return this.accountsService.getAllUserAccounts(userId);
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create new account' })
+  @ApiBody({
+    description: 'The data to create an account',
+    examples: {
+      example1: {
+        summary: 'Example',
+        value: {
+          currency: 'GBP',
+        },
+      },
+    },
+  })
   @UseGuards(JwtAuthGuard, IsUserBlockedGuard) // Protect route with JWT and User Blocked Guard
   async createAccount(
     @Body() data: CreateAccountDto,
@@ -48,6 +64,8 @@ export class AccountsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete an existing account (if balance is 0)' })
+  @ApiParam({ name: 'id', required: true, description: 'The ID of the account you want to delete' })
   @UseGuards(JwtAuthGuard, OwnershipGuard) // Only authenticated users can delete an account
   async closeAccount(
     @Param('id', ParseIntPipe) id: number,
@@ -57,17 +75,40 @@ export class AccountsController {
   }
 
   @Get(':id/balance')
-  @UseGuards(JwtAuthGuard, OwnershipGuard) // Only authenticated users can access balance
+  @ApiOperation({ summary: 'Get balance of account' })
+  @ApiParam({ name: 'id', required: true, description: 'The ID of the account you want to get balance' })
+  @ApiQuery({
+    name: 'currency',
+    required: false,
+    description:
+      'The optional currency code for the balance conversion (e.g., USD, EUR)',
+    example: 'UAH',
+  })
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
   async getBalance(
     @Param('id', ParseIntPipe) id: number,
-    @Query('currency') currency: string,
     @Req() req: RequestWithUser,
+    @Query('currency') currency?: string,
   ) {
     return this.accountsService.getBalance(id, currency);
   }
 
   @Post('convert')
-  @UseGuards(JwtAuthGuard) // Only authenticated users can perform currency conversions
+  @ApiOperation({ summary: 'Convert money' })
+  @ApiBody({
+    description: 'The data to convert money',
+    examples: {
+      example1: {
+        summary: 'Example',
+        value: {
+          amount: 100,
+          fromCurrency: 'EUR',
+          toCurrency: 'UAH',
+        },
+      },
+    },
+  })
+  @UseGuards(JwtAuthGuard)
   async convertCurrency(
     @Body() body: { amount: number; fromCurrency: string; toCurrency: string },
   ) {

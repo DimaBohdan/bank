@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import axios from 'axios';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -40,17 +40,20 @@ export class AccountsService {
     return this.prisma.account.delete({ where: { id: Number(id) } });
   }
 
-  async getBalance(id: number, currency: string) {
+  async getBalance(id: number, currency?: string) {
     const account = await this.prisma.account.findUnique({
       where: { id: Number(id) },
     });
-    // Конвертуємо валюту за потреби
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+    const finalCurrency = currency || account.currency;
     const convertedBalance = await this.convertCurrency(
       account.balance,
       account.currency,
-      currency,
+      finalCurrency,
     );
-    return { balance: convertedBalance, currency };
+    return { balance: convertedBalance, currency: finalCurrency };
   }
 
   async convertCurrency(
