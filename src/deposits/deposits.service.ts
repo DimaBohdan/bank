@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 
@@ -6,72 +6,107 @@ import { CreateDepositDto } from './dto/create-deposit.dto';
 export class DepositsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Create a deposit linked to both a user and an account
+  async findAllUserDeposits(userId: number) {
+    return this.prisma.deposit.findMany({
+      where: { userId },
+      include: { account: true, deposittemplates: true },
+    });
+  }
+
   async createDeposit(
     userId: number,
     accountId: number,
-    createDepositDto: CreateDepositDto,
+    dto: CreateDepositDto,
   ) {
-    // Validate that the account exists and belongs to the user
-    const account = await this.prisma.account.findFirst({
-      where: {
-        id: accountId,
-        userId: userId, // Ensures that the account is owned by the user
-      },
+    // Validate account
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
     });
-
     if (!account) {
-      throw new NotFoundException(
-        'Account not found or does not belong to the user',
-      );
+      throw new BadRequestException('Account not found');
+    }
+    if (account.userId !== userId) {
+      throw new BadRequestException('Unauthorized access to account');
     }
 
-    // Create the deposit and link it to the account and user
+    // Validate template
+    const template = await this.prisma.depositTemplate.findUnique({
+      where: { id: dto.templateId },
+    });
+    if (!template) {
+      throw new BadRequestException('Template not found');
+    }
+
+    // Currency validation
+    if (!JSON.parse(template.allowedCurrencies).includes(account.currency)) {
+      throw new BadRequestException('Currency not allowed for this template');
+    }
+
+    // Amount validation
+    if (dto.amount < template.minAmount || dto.amount > template.maxAmount) {
+      throw new BadRequestException('Amount out of allowed range');
+    }
+
     return this.prisma.deposit.create({
       data: {
-        amount: createDepositDto.amount,
-        interest: createDepositDto.interest,
-        createdAt: new Date(),
-        user: {
-          connect: { id: account.userId }, // Assumes `userId` exists in the `User` model
-        },
-        account: {
-          connect: { id: accountId }, // Assumes `accountId` exists in the `Account` model
-        },
+        amount: dto.amount,
+        interest: template.interest,
+        accountId,
+        userId,
+        deposittemplateId: dto.templateId,
       },
     });
   }
 
-  // Calculate the projected amount for a specific deposit
-  async calculateAccountProjections(accountId: number) {
-    // Fetch all deposits associated with the provided accountId
+  async calculateAccountProjections(
+    accountId: number,
+    relativeDuration: number,
+  ) {
+    relativeDuration = relativeDuration || 1;
     const deposits = await this.prisma.deposit.findMany({
-      where: { accountId: accountId },
+      where: { accountId },
     });
-
-    // If no deposits are found, throw a NotFoundException
     if (!deposits || deposits.length === 0) {
-      throw new NotFoundException(
-        'No deposits found for the specified account',
-      );
+      throw new NotFoundException('No deposits found for the specified account');
     }
-
-    // Calculate projections for each deposit
-    const projections = deposits.map((deposit) => {
+    const templates = await Promise.all(
+      deposits.map((deposit) =>
+        this.prisma.depositTemplate.findUnique({
+          where: { id: deposit.deposittemplateId }, // Ensure this field matches the correct relation field name
+        }),
+      ),
+    );
+    const projections = deposits.map((deposit, index) => {
+      const template = templates[index];
+      if (!template) {
+        throw new NotFoundException(`Template not found for deposit ID: ${deposit.id}`);
+      }
+      // Calculate the projected amount using interest and duration months from the template
       const projectedAmount =
-        deposit.amount + deposit.amount * (deposit.interest / 100);
+        deposit.amount +
+        deposit.amount *
+          ((deposit.interest * relativeDuration * template.durationMonths) /
+            12 /
+            100);
       return { depositId: deposit.id, projectedAmount };
     });
-
-    // Return the projections
     return { accountId, projections };
   }
 
-  // Update the interest rate of a specific deposit
   async updateInterestRate(depositId: number, newInterest: number) {
-    return this.prisma.deposit.update({
+    if (newInterest <= 0) {
+      throw new BadRequestException('Interest rate must be a positive number.');
+    }
+    const existingDeposit = await this.prisma.deposit.findUnique({
+      where: { id: depositId },
+    });
+    if (!existingDeposit) {
+      throw new NotFoundException(`Deposit with ID ${depositId} not found.`);
+    }
+    const updatedDeposit = await this.prisma.deposit.update({
       where: { id: depositId },
       data: { interest: newInterest },
     });
+    return updatedDeposit;
   }
 }

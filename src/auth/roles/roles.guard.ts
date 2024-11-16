@@ -24,24 +24,11 @@ export class RolesGuard implements CanActivate {
       // If no roles are specified, allow access
       return true;
     }
-
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'];
-
-    // Check if the authorization header is present
-    if (!authHeader) {
-      throw new UnauthorizedException('JWT token is missing');
-    }
-
-    const token = authHeader.split(' ')[1]; // Extract the token after "Bearer"
+    const user = request.user;
 
     try {
-      // Verify and decode the token
-      const decoded = await this.jwtService.verifyAsync(token);
-      request.user = decoded; // Attach the decoded user info to the request
-
-      // Check if the user's role is in the allowed roles
-      if (!requiredRoles.includes(decoded.role)) {
+      if (!requiredRoles.includes(user.role)) {
         throw new UnauthorizedException('Access denied for your role');
       }
 

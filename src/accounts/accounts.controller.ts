@@ -28,7 +28,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } fro
 @ApiBearerAuth()
 @ApiTags('Accounts')
 @Controller('accounts')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(RolesGuard)
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 

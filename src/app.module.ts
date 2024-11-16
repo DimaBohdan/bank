@@ -12,6 +12,8 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
 import { RolesGuard } from './auth/roles/roles.guard';
 import { OwnershipGuard } from './accounts/ownership.guard';
 import { LogsModule } from './logs/logs.module';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { DepositTemplateModule } from './deposit_template/deposit_template.module';
 
 @Module({
   imports: [
@@ -23,13 +25,14 @@ import { LogsModule } from './logs/logs.module';
     AdminModule,
     PrismaModule,
     LogsModule,
+    DepositTemplateModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: JwtAuthGuard,
     },
     Reflector,
   ],

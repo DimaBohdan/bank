@@ -14,30 +14,8 @@ export class IsUserBlockedGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'];
-
-    // Check if the authorization header is present
-    if (!authHeader) {
-      throw new UnauthorizedException('JWT token is missing');
-    }
-
-    // Extract token from "Bearer <token>" format
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      throw new UnauthorizedException('Token format is invalid');
-    }
-
     try {
-      // Verify and decode the JWT token
-      const decoded = await this.jwtService.verifyAsync(token);
-      if (!decoded || !decoded.id) {
-        throw new UnauthorizedException(
-          `Invalid token payload: ${JSON.stringify(decoded)}`,
-        );
-      }
-
-      // Attach decoded user info to the request for further use
-      const user = await this.usersService.findOneById(decoded.id);
+      const user = await this.usersService.findOneById(request.user.id);
 
       if (user?.isBlocked) {
         throw new ForbiddenException(

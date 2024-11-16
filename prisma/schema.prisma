@@ -40,14 +40,30 @@ model Account {
 }
 
 model Deposit {
-  id        Int      @id @default(autoincrement())
-  amount    Float
-  interest  Float
-  createdAt DateTime @default(now())
-  accountId Int
-  userId    Int      // Make sure this line exists
-  account   Account  @relation(fields: [accountId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  id                Int             @id @default(autoincrement())
+  amount            Float
+  interest          Float
+  createdAt         DateTime        @default(now())
+  accountId         Int
+  userId            Int
+  deposittemplateId Int
+  account           Account         @relation(fields: [accountId], references: [id])
+  user              User            @relation(fields: [userId], references: [id])
+  deposittemplates  DepositTemplate @relation(fields: [deposittemplateId], references: [id])
+}
+
+model DepositTemplate {
+  id               Int      @id @default(autoincrement())
+  name             String
+  interest         Float
+  minAmount        Float
+  maxAmount        Float
+  allowedCurrencies String
+  durationMonths   Int 
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deposits         Deposit[]
 }
 
 model Transaction {
@@ -59,4 +75,3 @@ model Transaction {
   account        Account  @relation(fields: [accountId], references: [id])
   targetAccountId Int?    // For transfers between accounts (optional field)
 }
-

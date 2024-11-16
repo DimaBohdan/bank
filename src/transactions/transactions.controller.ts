@@ -12,7 +12,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs
 @ApiBearerAuth()
 @ApiTags('Transactions')
 @Controller('transactions')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(RolesGuard)
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
