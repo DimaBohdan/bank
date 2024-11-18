@@ -23,6 +23,7 @@ model User {
   deposits     Deposit[]
 }
 
+//planned extension of functionality
 model Admin {
   id       Int    @id @default(autoincrement())
   email    String @unique
@@ -73,5 +74,5 @@ model Transaction {
   createdAt      DateTime @default(now())
   accountId      Int
   account        Account  @relation(fields: [accountId], references: [id])
-  targetAccountId Int?    // For transfers between accounts (optional field)
+  targetAccountId Int?
 }

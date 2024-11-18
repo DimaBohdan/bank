@@ -28,11 +28,4 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto.email, registerDto.password);
   }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Post('protected')
-  @Roles('ADMIN')
-  getProtectedResource(@Request() req) {
-    return { message: 'This is a protected route', user: req.user };
-  }
 }

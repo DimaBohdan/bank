@@ -1,26 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 
 @Injectable()
 export class AdminService {
-  create(createAdminDto: CreateAdminDto) {
-    return 'This action adds a new admin';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getAllAdmins() {
+    return this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true, email: true, role: true, isBlocked: true },
+    });
   }
 
-  findAll() {
-    return `This action returns all admin`;
+  async createAdmin(dto: CreateAdminDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    return this.prisma.user.create({
+      data: {
+        email: dto.email,
+        password: dto.password,
+        role: 'ADMIN',
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} admin`;
-  }
-
-  update(id: number, updateAdminDto: UpdateAdminDto) {
-    return `This action updates a #${id} admin`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} admin`;
+  // Grant admin role to an existing user
+  async toggleAdminRole(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role: newRole },
+    });
   }
 }

@@ -10,17 +10,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET, // Use your JWT_SECRET from .env
+      secretOrKey: process.env.JWT_SECRET,
     });
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.usersService.findOneById(payload.id); // Find user by ID
+    const user = await this.usersService.findOneById(payload.id);
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    // Attach user with role
     return { ...user, role: payload.role };
   }
 }

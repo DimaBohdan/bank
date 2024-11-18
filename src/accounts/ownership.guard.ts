@@ -22,7 +22,7 @@ export class OwnershipGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     try {
       const user = request.user;
-      const accountId = Number(request.params.id); // Parse the account ID from the route parameters
+      const accountId = Number(request.params.id);
       const account = await this.accountsService.findAccountById(accountId);
 
       if (!account) {
