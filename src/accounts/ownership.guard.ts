@@ -38,7 +38,6 @@ export class OwnershipGuard implements CanActivate {
 
       return true; // Access granted
     } catch (error) {
-      // Log the error for debugging if necessary
       console.error('Error in OwnershipGuard:', error.message);
 
       throw new UnauthorizedException('You are not an owner of that account');

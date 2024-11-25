@@ -1,8 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { convertCurrency } from '../utils/currency-conversion.util';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -10,12 +8,11 @@ export class TransactionService {
   async getUserTransactions(userId: number) {
     return this.prisma.transaction.findMany({
       where: { account: { userId } },
-      orderBy: { createdAt: 'desc' }, // Sort by newest first
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async deposit(userId: number, accountId: number, amount: number) {
-    // Fetch the account
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
       include: { user: true },
@@ -26,13 +23,11 @@ export class TransactionService {
       throw new HttpException('Account not found', HttpStatus.FORBIDDEN);
     }
 
-    // Update account balance
     const updatedAccount = await this.prisma.account.update({
       where: { id: accountId },
       data: { balance: { increment: amount } },
     });
 
-    // Create transaction record
     await this.prisma.transaction.create({
       data: {
         type: 'deposit',
@@ -45,7 +40,6 @@ export class TransactionService {
   }
 
   async withdraw(userId: number, accountId: number, amount: number) {
-    // Fetch the account
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
       include: { user: true },
@@ -83,7 +77,6 @@ export class TransactionService {
     toAccountId: number,
     amount: number,
   ) {
-    // Fetch source and target accounts
     const fromAccount = await this.prisma.account.findUnique({
       where: { id: fromAccountId },
       include: { user: true },
@@ -123,7 +116,6 @@ export class TransactionService {
       data: { balance: { increment: convertedAmount } },
     });
 
-    // Create transaction records
     const transaction = await this.prisma.transaction.create({
       data: {
         type: 'transfer',
@@ -133,6 +125,5 @@ export class TransactionService {
       },
     });
     return { ...transaction, ...updatedAccount };
-    // Update balances
   }
 }

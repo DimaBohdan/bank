@@ -1,13 +1,17 @@
-import { Injectable, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import axios from 'axios';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
 
 @Injectable()
 export class AccountsService {
   private readonly apiUrl = 'https://openexchangerates.org/api/latest.json';
-  private readonly apiKey = '2c565f678dc44ed6b63a0155a856f635';
+  private readonly apiKey = process.env.OPEN_EXCHANGE_RATES_API_KEY;
   constructor(private prisma: PrismaService) {}
 
   async getAllUserAccounts(userId: number) {
@@ -75,7 +79,7 @@ export class AccountsService {
       }
 
       // Convert the amount
-      const baseAmount = amount / rates[fromCurrency]; // Convert to USD (base currency)
+      const baseAmount = amount / rates[fromCurrency];
       const convertedAmount = baseAmount * rates[toCurrency]; // Convert to target currency
       return convertedAmount;
     } catch (error) {

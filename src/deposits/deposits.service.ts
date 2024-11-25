@@ -18,7 +18,6 @@ export class DepositsService {
     accountId: number,
     dto: CreateDepositDto,
   ) {
-    // Validate account
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
     });
@@ -72,7 +71,7 @@ export class DepositsService {
     const templates = await Promise.all(
       deposits.map((deposit) =>
         this.prisma.depositTemplate.findUnique({
-          where: { id: deposit.deposittemplateId }, // Ensure this field matches the correct relation field name
+          where: { id: deposit.deposittemplateId },
         }),
       ),
     );
@@ -81,7 +80,6 @@ export class DepositsService {
       if (!template) {
         throw new NotFoundException(`Template not found for deposit ID: ${deposit.id}`);
       }
-      // Calculate the projected amount using interest and duration months from the template
       const projectedAmount =
         deposit.amount +
         deposit.amount *

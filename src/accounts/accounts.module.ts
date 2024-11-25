@@ -11,7 +11,7 @@ import { Reflector } from '@nestjs/core';
 import { OwnershipGuard } from './ownership.guard';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule], // Add this line
+  imports: [PrismaModule, AuthModule, UsersModule],
   providers: [
     AccountsService,
     RolesGuard,

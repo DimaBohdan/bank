@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
 import { Roles } from '../auth/roles/roles.decorator';
 import { IsUserBlockedGuard } from '../users/is-user-blocked.guard';
-import { OwnershipGuard } from '../accounts/ownership.guard'; // Ensure this guard is properly defined
+import { OwnershipGuard } from '../accounts/ownership.guard';
 import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import {
   ApiBearerAuth,

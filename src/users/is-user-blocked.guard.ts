@@ -23,9 +23,8 @@ export class IsUserBlockedGuard implements CanActivate {
         );
       }
 
-      return true; // User is not blocked, allow access
+      return true;
     } catch (error) {
-      // Handle JWT verification errors and other unexpected issues
       throw new UnauthorizedException('Forbidden. User is blocked');
     }
   }

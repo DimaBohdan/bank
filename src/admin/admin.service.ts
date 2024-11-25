@@ -30,7 +30,6 @@ export class AdminService {
     });
   }
 
-  // Grant admin role to an existing user
   async toggleAdminRole(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {

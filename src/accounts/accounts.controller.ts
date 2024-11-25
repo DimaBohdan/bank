@@ -8,22 +8,24 @@ import {
   Query,
   UseGuards,
   Req,
-  HttpStatus,
-  HttpException,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { convertCurrency } from '../utils/currency-conversion.util';
 import { IsUserBlockedGuard } from '../users/is-user-blocked.guard';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Import your JwtAuthGuard
-import { UpdateAccountDto } from './dto/update-account.dto';
-import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
-import { Roles } from 'src/auth/roles/roles.decorator';
 import { OwnershipGuard } from './ownership.guard';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiBearerAuth()
 @ApiTags('Accounts')
@@ -53,19 +55,22 @@ export class AccountsController {
       },
     },
   })
-  @UseGuards(JwtAuthGuard, IsUserBlockedGuard) // Protect route with JWT and User Blocked Guard
+  @UseGuards(JwtAuthGuard, IsUserBlockedGuard)
   async createAccount(
     @Body() data: CreateAccountDto,
     @Req() req: RequestWithUser,
   ) {
-    // Extract the user from the request, if needed
     const userId = req.user.id;
-    return this.accountsService.create({ ...data, userId }); // Associate account with authenticated user
+    return this.accountsService.create({ ...data, userId });
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an existing account (if balance is 0)' })
-  @ApiParam({ name: 'id', required: true, description: 'The ID of the account you want to delete' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'The ID of the account you want to delete',
+  })
   @UseGuards(JwtAuthGuard, OwnershipGuard) // Only authenticated users can delete an account
   async closeAccount(
     @Param('id', ParseIntPipe) id: number,
@@ -76,7 +81,11 @@ export class AccountsController {
 
   @Get(':id/balance')
   @ApiOperation({ summary: 'Get balance of account' })
-  @ApiParam({ name: 'id', required: true, description: 'The ID of the account you want to get balance' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'The ID of the account you want to get balance',
+  })
   @ApiQuery({
     name: 'currency',
     required: false,
