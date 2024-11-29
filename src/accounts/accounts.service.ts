@@ -40,6 +40,9 @@ export class AccountsService {
     if (account.balance !== 0) {
       throw new Error('Account balance must be zero to close it.');
     }
+    await this.prisma.transaction.deleteMany({
+      where: { accountId: id },
+    });
     return this.prisma.account.delete({ where: { id: Number(id) } });
   }
 
