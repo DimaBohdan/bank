@@ -1,6 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
 
 @Injectable()
 export class AdminService {
@@ -10,23 +9,6 @@ export class AdminService {
     return this.prisma.user.findMany({
       where: { role: 'ADMIN' },
       select: { id: true, email: true, role: true, isBlocked: true },
-    });
-  }
-
-  async createAdmin(dto: CreateAdminDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (existingUser) {
-      throw new BadRequestException('User with this email already exists');
-    }
-
-    return this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: dto.password,
-        role: 'ADMIN',
-      },
     });
   }
 

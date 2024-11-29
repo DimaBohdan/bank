@@ -1,10 +1,24 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Patch, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Patch,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { DepositTemplateService } from './deposit_template.service';
 import { CreateDepositTemplateDto } from './dto/create-deposit_template.dto';
 import { DepositTemplate } from '@prisma/client';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
-import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import { Roles } from 'src/auth/roles/roles.decorator';
 
 @ApiBearerAuth()
@@ -23,7 +37,6 @@ export class DepositTemplateController {
   @Roles('ADMIN')
   async createTemplate(
     @Body() dto: CreateDepositTemplateDto,
-    @Req() req: RequestWithUser,
   ): Promise<DepositTemplate> {
     return this.templateService.create(dto);
   }
@@ -34,19 +47,20 @@ export class DepositTemplateController {
     status: 200,
     description: 'List of templates',
   })
-  async getAllTemplates(
-    @Req() req: RequestWithUser,
-  ): Promise<DepositTemplate[]> {
+  async getAllTemplates(): Promise<DepositTemplate[]> {
     return this.templateService.getAll();
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Active/inactive deposit template' })
-  @ApiParam({ name: 'id', required: true, description: 'The ID of the template you want ' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'The ID of the template you want ',
+  })
   @Roles('ADMIN')
   async toggleActive(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
   ): Promise<DepositTemplate> {
     return this.templateService.toggleActivateDeposit(id);
   }

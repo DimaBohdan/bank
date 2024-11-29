@@ -46,22 +46,17 @@ export class AccountsController {
   @ApiOperation({ summary: 'Create new account' })
   @ApiBody({
     description: 'The data to create an account',
-    examples: {
-      example1: {
-        summary: 'Example',
-        value: {
-          currency: 'GBP',
-        },
-      },
-    },
+    type: CreateAccountDto,
   })
   @UseGuards(JwtAuthGuard, IsUserBlockedGuard)
   async createAccount(
-    @Body() data: CreateAccountDto,
-    @Req() req: RequestWithUser,
+    @Body()
+    data: CreateAccountDto,
+    @Req()
+    req: RequestWithUser,
   ) {
     const userId = req.user.id;
-    return this.accountsService.create({ ...data, userId });
+    return this.accountsService.create(data.currency, userId);
   }
 
   @Delete(':id')
@@ -71,11 +66,8 @@ export class AccountsController {
     required: true,
     description: 'The ID of the account you want to delete',
   })
-  @UseGuards(JwtAuthGuard, OwnershipGuard) // Only authenticated users can delete an account
-  async closeAccount(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  async closeAccount(@Param('id', ParseIntPipe) id: number) {
     return this.accountsService.closeAccount(id);
   }
 

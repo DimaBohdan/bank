@@ -10,22 +10,21 @@ import { UsersService } from './users.service';
 
 @Injectable()
 export class IsUserBlockedGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService, private readonly usersService: UsersService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    try {
-      const user = await this.usersService.findOneById(request.user.id);
+    const user = await this.usersService.findOneById(request.user.id);
 
-      if (user?.isBlocked) {
-        throw new ForbiddenException(
-          'User is blocked and cannot perform this action',
-        );
-      }
-
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException('Forbidden. User is blocked');
+    if (user?.isBlocked) {
+      throw new ForbiddenException(
+        'User is blocked and cannot perform this action',
+      );
     }
+
+    return true;
   }
 }

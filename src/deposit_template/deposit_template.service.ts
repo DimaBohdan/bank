@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDepositTemplateDto } from './dto/create-deposit_template.dto';
-import { DepositTemplate } from './entities/deposit_template.entity';
 
 @Injectable()
 export class DepositTemplateService {

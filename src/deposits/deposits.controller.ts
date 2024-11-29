@@ -26,6 +26,7 @@ import {
   ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
+import { UpdateDepositDto } from './dto/update-deposit.dto';
 
 @ApiBearerAuth()
 @ApiTags('Deposits')
@@ -53,15 +54,6 @@ export class DepositsController {
   @ApiBody({
     description: 'The data to create a deposit',
     type: CreateDepositDto,
-    examples: {
-      example1: {
-        summary: 'Example deposit creation',
-        value: {
-          amount: 1045.68,
-          templateId: 2,
-        },
-      },
-    },
   })
   async createDeposit(
     @Param('id', ParseIntPipe) accountId: number,
@@ -110,19 +102,15 @@ export class DepositsController {
   })
   @ApiBody({
     description: 'The data to change a deposit',
-    examples: {
-      example1: {
-        summary: 'Example',
-        value: {
-          interest: 2.8,
-        },
-      },
-    },
+    type: UpdateDepositDto,
   })
   async updateInterestRate(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { interest: number },
+    @Body() updateDepositDto: UpdateDepositDto,
   ) {
-    return this.depositsService.updateInterestRate(id, body.interest);
+    return this.depositsService.updateInterestRate(
+      id,
+      updateDepositDto.interest,
+    );
   }
 }

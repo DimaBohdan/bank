@@ -5,8 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import axios from 'axios';
-import { CreateAccountDto } from './dto/create-account.dto';
+import { convertCurrency } from 'src/utils/currency-conversion.util';
 
 @Injectable()
 export class AccountsService {
@@ -25,11 +24,11 @@ export class AccountsService {
     });
   }
 
-  async create(data: CreateAccountDto) {
+  async create(currency: string, userId: number) {
     return await this.prisma.account.create({
       data: {
-        currency: data.currency,
-        userId: data.userId,
+        currency: currency,
+        userId: userId,
       },
     });
   }
@@ -66,22 +65,7 @@ export class AccountsService {
     toCurrency: string,
   ): Promise<number> {
     try {
-      // Fetch exchange rates
-      const response = await axios.get(`${this.apiUrl}?app_id=${this.apiKey}`);
-      const rates = response.data.rates;
-
-      // Check if currencies are available
-      if (!rates[fromCurrency] || !rates[toCurrency]) {
-        throw new HttpException(
-          'Currency not supported',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Convert the amount
-      const baseAmount = amount / rates[fromCurrency];
-      const convertedAmount = baseAmount * rates[toCurrency]; // Convert to target currency
-      return convertedAmount;
+      return convertCurrency(amount, fromCurrency, toCurrency);
     } catch (error) {
       throw new HttpException(
         `Failed to fetch exchange rates: ${error}$`,

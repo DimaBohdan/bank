@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 
@@ -28,7 +32,6 @@ export class DepositsService {
       throw new BadRequestException('Unauthorized access to account');
     }
 
-    // Validate template
     const template = await this.prisma.depositTemplate.findUnique({
       where: { id: dto.templateId },
     });
@@ -36,12 +39,10 @@ export class DepositsService {
       throw new BadRequestException('Template not found');
     }
 
-    // Currency validation
     if (!JSON.parse(template.allowedCurrencies).includes(account.currency)) {
       throw new BadRequestException('Currency not allowed for this template');
     }
 
-    // Amount validation
     if (dto.amount < template.minAmount || dto.amount > template.maxAmount) {
       throw new BadRequestException('Amount out of allowed range');
     }
@@ -66,7 +67,9 @@ export class DepositsService {
       where: { accountId },
     });
     if (!deposits || deposits.length === 0) {
-      throw new NotFoundException('No deposits found for the specified account');
+      throw new NotFoundException(
+        'No deposits found for the specified account',
+      );
     }
     const templates = await Promise.all(
       deposits.map((deposit) =>
@@ -78,7 +81,9 @@ export class DepositsService {
     const projections = deposits.map((deposit, index) => {
       const template = templates[index];
       if (!template) {
-        throw new NotFoundException(`Template not found for deposit ID: ${deposit.id}`);
+        throw new NotFoundException(
+          `Template not found for deposit ID: ${deposit.id}`,
+        );
       }
       const projectedAmount =
         deposit.amount +
